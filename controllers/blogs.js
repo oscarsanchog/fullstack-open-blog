@@ -1,10 +1,20 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/Blog')
+const User = require('../models/User')
+const jwt = require('jsonwebtoken')
+
+const getTokenFrom = (request) => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    return authorization.replace('Bearer ', '')
+  }
+  return null
+}
 
 blogsRouter
   .get('/', async (request, response, next) => {
     try {
-      const blogs = await Blog.find({})
+      const blogs = await Blog.find({}).populate('user', { blogs: false })
       response.json(blogs)
     } catch (error) {
       next(error)
@@ -12,8 +22,19 @@ blogsRouter
   })
   .post('/', async (request, response, next) => {
     try {
-      const blog = new Blog(request.body)
+      const { body, user } = request
+
+      if (!user) return response.status(401).json({ error: 'Invalid token. Please login again.' })
+
+      const blog = new Blog({
+        ...body,
+        user: user.id,
+      })
+
       const savedBlog = await blog.save()
+      user.blogs = user.blogs.concat(savedBlog.id)
+      await user.save()
+
       response.status(201).json(savedBlog)
     } catch (error) {
       next(error)
@@ -22,13 +43,24 @@ blogsRouter
   .delete('/:id', async (request, response, next) => {
     try {
       const { id } = request.params
-      const deletedBlog = await Blog.findByIdAndDelete(id)
+      const { user } = request
 
-      if (!deletedBlog) {
+      if (!user) return response.status(401).json({ error: 'Invalid token' })
+
+      const blog = await Blog.findById(id)
+      if (!blog) {
         return response
           .status(404)
           .json({ message: 'Blog not found, please reload' })
       }
+
+      if (blog.user.toString() !== decodedToken.id.toString()) {
+        return response
+          .status(403)
+          .json({ error: 'You do not have permission to delete this blog' })
+      }
+
+      await Blog.findByIdAndDelete(id)
 
       response.status(204).end()
     } catch (error) {
