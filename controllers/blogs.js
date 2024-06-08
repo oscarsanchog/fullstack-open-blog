@@ -1,15 +1,7 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/Blog')
 const User = require('../models/User')
-const jwt = require('jsonwebtoken')
 
-const getTokenFrom = (request) => {
-  const authorization = request.get('authorization')
-  if (authorization && authorization.startsWith('Bearer ')) {
-    return authorization.replace('Bearer ', '')
-  }
-  return null
-}
 
 blogsRouter
   .get('/', async (request, response, next) => {
@@ -54,7 +46,7 @@ blogsRouter
           .json({ message: 'Blog not found, please reload' })
       }
 
-      if (blog.user.toString() !== decodedToken.id.toString()) {
+      if (blog.user.toString() !== user.id.toString()) {
         return response
           .status(403)
           .json({ error: 'You do not have permission to delete this blog' })
