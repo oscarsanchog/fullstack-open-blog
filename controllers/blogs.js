@@ -2,7 +2,6 @@ const blogsRouter = require('express').Router()
 const Blog = require('../models/Blog')
 const User = require('../models/User')
 
-
 blogsRouter
   .get('/', async (request, response, next) => {
     try {
@@ -16,7 +15,10 @@ blogsRouter
     try {
       const { body, user } = request
 
-      if (!user) return response.status(401).json({ error: 'Invalid token. Please login again.' })
+      if (!user)
+        return response
+          .status(401)
+          .json({ message: 'Invalid token. Please login again.' })
 
       const blog = new Blog({
         ...body,
@@ -37,7 +39,7 @@ blogsRouter
       const { id } = request.params
       const { user } = request
 
-      if (!user) return response.status(401).json({ error: 'Invalid token' })
+      if (!user) return response.status(401).json({ message: 'Invalid token' })
 
       const blog = await Blog.findById(id)
       if (!blog) {
@@ -49,7 +51,7 @@ blogsRouter
       if (blog.user.toString() !== user.id.toString()) {
         return response
           .status(403)
-          .json({ error: 'You do not have permission to delete this blog' })
+          .json({ message: 'You do not have permission to delete this blog' })
       }
 
       await Blog.findByIdAndDelete(id)
@@ -73,7 +75,9 @@ blogsRouter
           context: 'query',
         }
       )
-      res.json(updatedBlog)
+      updatedBlog !== null
+        ? res.json(updatedBlog)
+        : res.status(400).json({ message: 'User with such ID does not exist' })
     } catch (error) {
       next(error)
     }
