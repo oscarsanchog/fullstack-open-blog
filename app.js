@@ -32,6 +32,9 @@ mongoose
     logger.error('Error connecting to MongoDB', error.message)
   })
 
+  console.log(process.env.NODE_ENV)
+  
+
 app
   .use(cors())
   .use(express.static('dist'))
@@ -43,7 +46,11 @@ app
   .use('/api/users', usersRouter)
   .use('/api/login', loginRouter)
 
-if (process.env.NODE_ENV === 'test') app.use('/api/testing', testingRouter)
+  if (process.env.NODE_ENV === 'test') {
+    const testingRouter = require('./controllers/testing')
+    app.use('/api/testing', testingRouter)
+
+  }
 
 app
   .use(middleware.unknownEndpoint)
