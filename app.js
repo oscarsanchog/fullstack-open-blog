@@ -5,13 +5,13 @@ const cors = require('cors')
 const blogRouter = require('./controllers/blogs')
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
+const testingRouter = require('./controllers/testing')
 const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
 const mongoose = require('mongoose')
 const morgan = require('morgan')
 const Blog = require('./models/Blog')
 const User = require('./models/User')
-
 
 mongoose.set('strictQuery', false)
 
@@ -42,6 +42,10 @@ app
   .use('/api/blog', middleware.userExtractor, blogRouter)
   .use('/api/users', usersRouter)
   .use('/api/login', loginRouter)
+
+if (process.env.NODE_ENV === 'test') app.use('/api/testing', testingRouter)
+
+app
   .use(middleware.unknownEndpoint)
   .use(middleware.errorHandler)
 
