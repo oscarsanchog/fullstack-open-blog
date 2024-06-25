@@ -32,8 +32,7 @@ mongoose
     logger.error('Error connecting to MongoDB', error.message)
   })
 
-  console.log(process.env.NODE_ENV)
-  
+console.log(process.env.NODE_ENV)
 
 app
   .use(cors())
@@ -46,14 +45,8 @@ app
   .use('/api/users', usersRouter)
   .use('/api/login', loginRouter)
 
-  if (process.env.NODE_ENV === 'test') {
-    const testingRouter = require('./controllers/testing')
-    app.use('/api/testing', testingRouter)
+if (process.env.NODE_ENV === 'test') app.use('/api/testing', testingRouter)
 
-  }
-
-app
-  .use(middleware.unknownEndpoint)
-  .use(middleware.errorHandler)
+app.use(middleware.unknownEndpoint).use(middleware.errorHandler)
 
 module.exports = app
